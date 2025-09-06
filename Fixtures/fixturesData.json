@@ -1,0 +1,7 @@
+{
+  "registeredUser": { "userId": "00001" },
+  "deletedUserId": { "userId": "00002" },
+  "blockedUserId": { "userId": "00003" },
+  "nonRegisteredUser": { "userId": "00004" },
+  "nonExistentUserId": { "userId": "99999" }
+} 

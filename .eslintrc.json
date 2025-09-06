@@ -1,0 +1,73 @@
+{
+    "env": {
+        "node": true,
+        "jest": true,
+        "es2021": true
+    },
+    "extends": [
+        "airbnb-base",
+        "airbnb-typescript/base",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "./tsconfig.json",
+        "ecmaVersion": 2021,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint",
+        "check-file"
+    ],
+    "ignorePatterns": ["dist/", "node_modules/", "*.js"],
+    "rules": {
+        "prefer-const": "error",
+        "no-console": "warn",
+        "@typescript-eslint/return-await": ["error", "always"],
+        "padding-line-between-statements": [
+            "error",
+            { "blankLine": "always", "prev": "*", "next": "return" },
+            { "blankLine": "always", "prev": "block-like", "next": "*" },
+            { "blankLine": "always", "prev": "*", "next": "throw" },
+            { "blankLine": "always", "prev": "*", "next": "if" }
+        ],
+        "@typescript-eslint/no-unused-expressions": [
+            "error",
+            {
+                "allowShortCircuit": true,
+                "allowTernary": true 
+            }
+        ],
+        "check-file/filename-naming-convention": [
+            "error",
+            {
+              "**/*": "PASCAL_CASE"
+            }
+        ],
+        "check-file/folder-naming-convention": [
+            "error",
+            {
+                "**/": "PASCAL_CASE"
+            }
+        ],
+        "no-else-return": ["error", {
+            "allowElseIf": true
+        }],
+        "import/prefer-default-export": "off",
+        "import/no-cycle": "off",
+        "no-nested-ternary": "off",
+        "class-methods-use-this": "off",
+        "@typescript-eslint/no-explicit-any": "warn"
+    },
+    "overrides": [
+        {
+            "files": ["Tests/**/*.ts", "**/*.test.ts", "**/*.spec.ts"],
+            "rules": {
+                "no-await-in-loop": "off",
+                "no-console": "off",
+                "@typescript-eslint/no-explicit-any": "off"
+            }
+        }
+    ]
+}
