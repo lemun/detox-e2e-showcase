@@ -1,0 +1,5 @@
+node_modules
+example-app/ios
+example-app/node_modules
+artifacts
+package-lock.json

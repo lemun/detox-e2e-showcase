@@ -1,0 +1,32 @@
+{
+  "name": "sample-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal React Native app that the Detox suite in ../e2e targets.",
+  "scripts": {
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "pods": "cd ios && pod install",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "19.2.3",
+    "react-native": "0.84.1",
+    "react-native-safe-area-context": "5.10.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "20.1.0",
+    "@react-native-community/cli-platform-ios": "20.1.0",
+    "@react-native/babel-preset": "0.84.1",
+    "@react-native/metro-config": "0.84.1",
+    "@react-native/typescript-config": "0.84.1",
+    "@types/react": "^19.2.0",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">= 22.11.0"
+  }
+}

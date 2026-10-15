@@ -1,0 +1,10 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "types": []
+  },
+  "include": ["index.js", "App.tsx", "src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["**/node_modules", "**/Pods"]
+}
