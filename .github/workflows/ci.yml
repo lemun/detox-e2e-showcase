@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      detox:
+        description: Also build the sample app and run the Detox suite on an iOS simulator (macOS runner)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, typecheck, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            example-app/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix example-app
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run test:unit
+
+  detox-ios:
+    name: Detox (iOS simulator)
+    # macOS minutes are expensive, so the device run is opt-in from the Actions tab.
+    if: github.event_name == 'workflow_dispatch' && inputs.detox
+    needs: checks
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            example-app/package-lock.json
+      - name: Install applesimutils
+        run: brew tap wix/brew && brew install applesimutils
+      - run: npm ci
+      - run: npm run app:install
+      - run: npm run e2e:build:ios
+      - run: npm run e2e:test:ios -- --headless --cleanup
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: detox-artifacts
+          path: artifacts/
