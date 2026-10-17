@@ -1,0 +1,38 @@
+{
+  "name": "detox-e2e-showcase",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "A layered Detox + Jest + TypeScript e2e architecture, running against a small sample React Native app and an in-memory fake backend.",
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit && npm --prefix example-app run typecheck",
+    "test:unit": "jest --config jest.unit.config.js",
+    "backend": "tsx fake-backend/Main.ts",
+    "app:install": "npm --prefix example-app ci && npm --prefix example-app run pods",
+    "e2e:build:ios": "detox build --configuration ios.sim.release",
+    "e2e:test:ios": "detox test --configuration ios.sim.release"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@jest/globals": "30.5.2",
+    "@types/node": "22.20.5",
+    "detox": "20.51.4",
+    "eslint": "10.12.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-check-file": "3.3.2",
+    "eslint-plugin-prettier": "5.5.7",
+    "globals": "17.13.0",
+    "jest": "30.5.2",
+    "prettier": "3.9.10",
+    "ts-jest": "29.4.15",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.2"
+  },
+  "engines": {
+    "node": ">=22.11.0"
+  }
+}
