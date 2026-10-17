@@ -1,4 +1,21 @@
-# Detox E2E architecture for React Native
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/banner-light.png">
+  <img src="docs/assets/banner-light.png" alt="detox-e2e-showcase: layered Detox, Jest and TypeScript end-to-end tests for React Native" width="100%">
+</picture>
+
+### A layered Detox end-to-end test architecture for React Native. Fork it and make it yours.
+
+[![CI](https://github.com/lemun/detox-e2e-showcase/actions/workflows/ci.yml/badge.svg)](https://github.com/lemun/detox-e2e-showcase/actions/workflows/ci.yml)
+[![Node.js ≥22.11](https://img.shields.io/badge/node-%E2%89%A522.11-brightgreen)](package.json)
+[![Detox 20](https://img.shields.io/badge/detox-20-blue)](package.json)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+[Quick start](#quick-start) · [How it works](#how-it-works) · [Features](#features) · [Use it in your app](#using-this-in-your-own-app) · [Troubleshooting](#troubleshooting) · [CI](#ci)
+
+</div>
 
 A layered end-to-end test architecture for React Native, written in strict TypeScript on
 [Detox](https://wix.github.io/Detox/) and [Jest](https://jestjs.io/). Fork it as a starting point for your own
@@ -9,16 +26,60 @@ It runs against a small sample app and an in-memory fake backend that are both i
 clone it and see a green run before changing anything. [Using this in your own app](#using-this-in-your-own-app)
 shows what to keep and what to replace.
 
-## What is in here
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Terminal recording: npm run test:unit passes 6 tests against the fake backend over real HTTP, then the backend is started, an account is created with curl, the verification code is read from the test route, and the email is verified." width="880">
+  <br>
+  <sub>The fake backend, no simulator needed: the unit tests, then a sign-up verified by hand through the test route.</sub>
+</p>
 
-| Path            | What it is                                                                                                            |
-| --------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `e2e/`          | The suite: Specs, Flows, Pages, Selectors, Fixtures, Lifecycle, Data, Core                                            |
-| `example-app/`  | Bare React Native 0.84 app (iOS): welcome, sign in, create account with an emailed code, home, profile, notifications |
-| `fake-backend/` | Dependency-free Node HTTP server with an in-memory store, plus test-only routes the suite uses                        |
-| `.detoxrc.js`   | Detox apps, simulator and configurations                                                                              |
+## Why this exists
 
-## Architecture
+End-to-end suites rot when selectors, timeouts, data setup and user journeys are mixed together in every test.
+This repository keeps them apart:
+
+- **Specs read like a description of what a user does.** A changed testID, timeout or backend touches one file.
+- **One layer talks to Detox.** `Core` is the only place that calls it, so waiting and logging are consistent.
+- **Deterministic data.** The backend is reset and reseeded before every test, and the app starts in a new process.
+- **Readable failures.** Every action is a step, and a failing step names the path that led to it.
+- **Runs anywhere you can clone it.** The sample app and a dependency-free fake backend are included.
+
+## Quick start
+
+Requires Node.js 22.11 or later and npm. The checks run on any OS and need no simulator:
+
+```sh
+npm ci
+npm ci --prefix example-app
+npm run lint          # ESLint (typescript-eslint strict, type-checked) + Prettier
+npm run typecheck     # suite, fake backend and sample app
+npm run test:unit     # fake backend over real HTTP, no simulator
+```
+
+To run the Detox suite itself you need macOS with Xcode and an iOS simulator runtime, CocoaPods, and
+[applesimutils](https://github.com/wix/AppleSimulatorUtils) (`brew tap wix/brew && brew install applesimutils`):
+
+```sh
+npm ci
+npm run app:install     # example-app dependencies + pod install
+npm run e2e:build:ios   # Release build of the sample app for the simulator
+npm run e2e:test:ios    # boots the simulator and runs e2e/Specs (each spec file starts the fake backend itself)
+```
+
+The suite uses an "iPhone 17" simulator by default. Pick another model with
+`DETOX_DEVICE_TYPE="iPhone 16" npm run e2e:test:ios`. The spec files start the fake backend on port 4545, so
+nothing else should be listening there.
+
+Versions: Detox 20.51, Jest 30, TypeScript 6.0, React Native 0.84.1 (inside the range Detox 20 officially
+supports, 0.77 to 0.84).
+
+## How it works
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/how-it-works-dark.svg">
+    <img src="docs/assets/how-it-works.svg" alt="Diagram: Specs call Flows, Flows call Pages, Pages use Selectors and Core, Core drives the sample app through Detox. Lifecycle hooks start the fake backend and a fresh app; Data (testApi) resets, seeds and reads codes and users over the backend's test routes." width="100%">
+  </picture>
+</p>
 
 Each layer only talks to the ones below it. A spec reads like a description of what a user does, and a changed
 testID, timeout or backend touches one file.
@@ -76,6 +137,19 @@ Error: [Sign in as avery@example.com > tap sign-in.submit-button] sign-in.submit
 
 (Shortened, and the timings are illustrative.)
 
+## Features
+
+- **Seven generic layers:** Specs, Flows, Pages, Selectors, Core, Data and Lifecycle, with a one-way dependency
+  rule between them.
+- **Step log:** `Core/Steps` wraps every action, prints its result and duration, and adds the failing path to the
+  error message.
+- **Page objects with waits built in:** `ScreenObject` waits until a screen is open; `Control` taps only when a view
+  is visible and enabled, and types without logging the value.
+- **Named flows:** `defineFlow` gives each journey a name in the step log, built from its arguments.
+- **Assertions on stored data:** specs check the screen and what the backend actually saved.
+- **Fake backend you can run by hand:** dependency-free Node HTTP server with an in-memory store and test-only routes.
+- **Strict tooling:** strict TypeScript, type-checked ESLint and Prettier, with PascalCase file names enforced.
+
 ## The specs
 
 - `ReturningUser.spec.ts`: a seeded user signs in and is greeted by name, a wrong password shows an error, the
@@ -83,37 +157,14 @@ Error: [Sign in as avery@example.com > tap sign-in.submit-button] sign-in.submit
 - `NewAccount.spec.ts`: a new person creates an account with the emailed code, an invalid email is flagged before
   any code is sent, and an email that already has an account is refused.
 
-## Requirements
+## Project structure
 
-- Node.js 22.11 or later and npm
-- For the device run: macOS with Xcode and an iOS simulator runtime, CocoaPods, and
-  [applesimutils](https://github.com/wix/AppleSimulatorUtils) (`brew tap wix/brew && brew install applesimutils`)
-
-Versions: Detox 20.51, Jest 30, TypeScript 6.0, React Native 0.84.1 (inside the range Detox 20 officially
-supports, 0.77 to 0.84).
-
-## Run the checks (any OS)
-
-```sh
-npm ci
-npm ci --prefix example-app
-npm run lint          # ESLint (typescript-eslint strict, type-checked) + Prettier
-npm run typecheck     # suite, fake backend and sample app
-npm run test:unit     # fake backend over real HTTP, no simulator
-```
-
-## Run the Detox suite (macOS)
-
-```sh
-npm ci
-npm run app:install     # example-app dependencies + pod install
-npm run e2e:build:ios   # Release build of the sample app for the simulator
-npm run e2e:test:ios    # boots the simulator and runs e2e/Specs (each spec file starts the fake backend itself)
-```
-
-The suite uses an "iPhone 17" simulator by default. Pick another model with
-`DETOX_DEVICE_TYPE="iPhone 16" npm run e2e:test:ios`. The spec files start the fake backend on port 4545, so
-nothing else should be listening there.
+| Path            | What it is                                                                                                            |
+| --------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `e2e/`          | The suite: Specs, Flows, Pages, Selectors, Fixtures, Lifecycle, Data, Core                                            |
+| `example-app/`  | Bare React Native 0.84 app (iOS): welcome, sign in, create account with an emailed code, home, profile, notifications |
+| `fake-backend/` | Dependency-free Node HTTP server with an in-memory store, plus test-only routes the suite uses                        |
+| `.detoxrc.js`   | Detox apps, simulator and configurations                                                                              |
 
 ## Use the sample app by hand
 
@@ -210,7 +261,10 @@ keyboard handling in pages (`closeKeyboard`) for your app.
 request. The iOS build and Detox run is a separate macOS job you start manually from the Actions tab
 (`workflow_dispatch` with `detox` checked), because macOS runner minutes are expensive.
 
-## Conventions
+## Contributing
+
+Issues and pull requests are welcome. Run `npm run lint`, `npm run format:check`, `npm run typecheck`
+and `npm run test:unit` first (the same checks as CI). Conventions:
 
 - testIDs are `screen.element` (`sign-in.email-input`, `dialog.primary-button`).
 - Folders and files in `e2e/` are PascalCase, which ESLint enforces.
